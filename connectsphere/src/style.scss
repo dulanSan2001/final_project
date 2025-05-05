@@ -1,0 +1,51 @@
+@use "sass:map";
+
+
+$themes: (
+  light: (
+    textColor: black,
+    bg: white,
+    logo: darkblue,
+    bgSoft: #f8f8f8,
+    textColorSoft: #b4a9a9,
+    border: lightgray,
+  ),
+  dark: (
+    textColor: white,
+    bg: rgb(66, 64, 64),
+    logo: white,
+    bgSoft: #342d2d,
+    textColorSoft: #b4a9a9,
+    border: rgb(245, 245, 245),
+  ),
+);
+
+@mixin themify($themes) {
+  @each $theme, $map in $themes {
+    .theme-#{$theme} & {
+      $theme-map: () !global;
+      @each $key, $value in $map {
+        $theme-map: map-merge($theme-map, ($key: $value)) !global;
+      }
+      @content;
+      $theme-map: null !global;
+    }
+  }
+}
+
+
+@function themed($key) {
+  @return map.get($theme-map, $key);
+}
+
+@mixin mobile {
+  @media (max-width: 480px) {
+    @content;
+  }
+}
+@mixin tablet {
+  @media (max-width: 820px) {
+    @content;
+  }
+}
+
