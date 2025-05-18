@@ -3,51 +3,40 @@ import axios from "axios";
 import "./addpost.scss";
 
 const CreatePost = () => {
-  const [desc, setDesc] = useState(""); // Store the description of the post
-  const [img, setImg] = useState("");  // Store the image URL
-  const [isSubmitting, setIsSubmitting] = useState(false); // Track the submission state
-  const [error, setError] = useState(""); // To display any errors
+  const [desc, setDesc] = useState("");
+  const [file, setFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  // Handle text input change
-  const handleDescChange = (e) => {
-    setDesc(e.target.value);
-  };
-
-  // Handle image URL input change
-  const handleImgChange = (e) => {
-    setImg(e.target.value);
-  };
-
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!desc.trim()) {
       setError("Description is required.");
       return;
     }
-  
+
     setIsSubmitting(true);
     setError("");
-  
-    const postData = {
-      desc,
-      img,
-    };
-  
+
+    const formData = new FormData();
+    formData.append("desc", desc);
+    if (file) formData.append("img", file);
+
     try {
-      const response = await axios.post("http://localhost:8800/api/posts", postData, {
-        withCredentials: true,  // Ensure the cookie is sent
+      const response = await axios.post("http://localhost:8800/api/posts", formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-  
+
       setDesc("");
-      setImg("");
+      setFile(null);
       console.log("Post created successfully:", response.data);
     } catch (err) {
-      // Log the error to the console for better visibility
       console.error("Error creating post:", err.response || err);
       if (err.response) {
-        // Show more detailed error message from the server response
         setError(err.response.data || "An error occurred while creating the post.");
       } else {
         setError("Network error, please try again.");
@@ -56,7 +45,6 @@ const CreatePost = () => {
       setIsSubmitting(false);
     }
   };
-  
 
   return (
     <div className="create-post">
@@ -64,7 +52,7 @@ const CreatePost = () => {
       <form onSubmit={handleSubmit}>
         <textarea
           value={desc}
-          onChange={handleDescChange}
+          onChange={(e) => setDesc(e.target.value)}
           placeholder="What's on your mind?"
           rows="4"
           cols="50"
@@ -72,10 +60,9 @@ const CreatePost = () => {
         ></textarea>
 
         <input
-          type="text"
-          value={img}
-          onChange={handleImgChange}
-          placeholder="Image URL (optional)"
+          type="file"
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files[0])}
         />
 
         <button type="submit" disabled={isSubmitting}>
